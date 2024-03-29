@@ -384,15 +384,16 @@ class MyPolicy_CL(Policy):
         self.replans = max_replans + 1
         self.time_from_last_plan = 0
         self.log = log
-
+        print("Calculating Next Plan.")
         grasp, transforms = self.calculate_next_plan()
         grasp = grasp[0]
-
+        print("Calculating Subgoals.")
         subgoals = self.calc_subgoals(grasp, transforms)
         ### for stablity, extrapolate the last subgoal
         # next_subgoal = subgoals[-1] + (subgoals[-1] - subgoals[-2])
         # subgoals.append(next_subgoal)
         subgoals_np = np.array(subgoals)
+        print("Finish the subgoal calculations.")
         # print(subgoals_np)
         max_deltaz = abs(subgoals_np[1:-2, 2] - subgoals_np[2:-1, 2]).max()
         if max_deltaz > 0.1:
@@ -419,30 +420,40 @@ class MyPolicy_CL(Policy):
         image, depth = self.env.render(resolution=self.resolution, depth=True, camera_name=self.camera)
         cmat = get_cmat(self.env, self.camera, resolution=self.resolution)
         seg = get_seg(self.env, resolution=self.resolution, camera=self.camera, seg_ids=self.seg_ids)
-
+        print("Predicting the Video Here.")
         # measure time for vidgen
         start = time.time()
+        ### Video model here.
+        ## TODO: Learn more about the video model here. The input is clear to be the starting image and the task description.
+        ## Study how can we possibly finetune the video model.
+        ## We will generate those image+text pairs and oracle "images" result. (We need to use an oracle controller, and disturb the trajectory.)
         images = pred_video(self.video_model, image, self.task)
         time_vid = time.time() - start
-
+        print("Finish Predicting the Video.")
         # measure time for flow
+        print("Predicting the Flow Frame.")
         start = time.time()
         image1, image2, color, flow, flow_b = pred_flow_frame(self.flow_model, images)
         time_flow = time.time() - start
-
+        print("Finish Predicting the Flow Frame.")
         # measure time for action planning
+        
+        print("Getting the transforms.")
         grasp, transforms, center_2ds, sampless = get_transforms(seg, depth, cmat, flow)
+        print("Finish Getting the transforms.")
+        print("Getting the transformation matrix.")
         transform_mats = [get_transformation_matrix(*transform) for transform in transforms]
         time_action = time.time() - start
-
+        print("Finish getting the transformation matrix.")
         t = len(transform_mats)
+        print(f"The length of the transform_mats: {t}")
         if self.log: log_time(time_vid/t, time_flow/t, time_action/t, self.max_replans-self.replans+1)
         if self.log and (self.time_from_last_plan!=0): log_time_execution(self.time_from_last_plan*0.1/t, self.max_replans-self.replans)
 
         self.replans -= 1
         self.replan_countdown = self.plan_timeout
         self.time_from_last_plan = 0
-
+        print("Finish with this function.")
         return grasp, transform_mats
 
     @staticmethod

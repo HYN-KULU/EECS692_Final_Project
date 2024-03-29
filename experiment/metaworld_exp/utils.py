@@ -52,6 +52,7 @@ def get_cmat(env, cam_name, resolution):
     
     return image @ focal @ rotation @ translation
 
+### The policy has generated the video plan. We will modify the code here.
 def collect_video(init_obs, env, policy, camera_name='corner3', resolution=(640, 480)):
     images = []
     depths = []
@@ -68,9 +69,14 @@ def collect_video(init_obs, env, policy, camera_name='corner3', resolution=(640,
     
     dd = 10 ### collect a few more steps after done
     while dd:
+        ### The policy is getting the action based on the obs(ervation).
         action = policy.get_action(obs)
         try:
             obs, reward, done, info = env.step(action)
+            ### We will make some modification here to detect the failure and possible discrepancy from the plan. 
+            ## The key step 1. We should collect the agent actual images and set as a video.
+            ## The key step 2. We should learn how to get the planning video.
+            ## The key step 3. We should implement the judgement through Video-LLM here.
             done = info['success']
             dd -= done
             episode_return += reward

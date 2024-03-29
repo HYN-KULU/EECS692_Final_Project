@@ -43,13 +43,14 @@ def run(args):
 
     n_exps = args.n_exps
     resolution = (320, 240)
-    cameras = ['corner', 'corner2', 'corner3']
+    # cameras = ['corner', 'corner2', 'corner3']
+    cameras = ['corner']
     max_replans = 5
 
 
     video_model = get_video_model(ckpts_dir=args.ckpt_dir, milestone=args.milestone)
     flow_model = get_flow_model()
-
+    print("Have got the video_model and flow_model.")
     try:
         with open(f"{result_root}/result_dict.json", "r") as f:
             result_dict = json.load(f)
@@ -75,11 +76,13 @@ def run(args):
                 env = benchmark_env(seed=seed)
                 
                 obs = env.reset()
+                print("Getting Policy")
                 policy = MyPolicy_CL(env, env_name, camera, video_model, flow_model, max_replans=max_replans)
-
+                print("Have got the Policy")
                 # os.makedirs(f'{result_root}/plans/{env_name}', exist_ok=True)
                 # imageio.mimsave(f'{result_root}/plans/{env_name}/{camera}_{seed}.mp4', images.transpose(0, 2, 3, 1))
 
+                # After getting the policy, the agent interact with the environment HERE in the collect_video function.
                 images, _, episode_return = collect_video(obs, env, policy, camera_name=camera, resolution=resolution)
                 rewards.append(episode_return / len(images))
 
@@ -131,7 +134,6 @@ if __name__ == "__main__":
             result_dict = json.load(f)
     except:
         result_dict = {}
-
     assert args.env_name in name2maskid.keys()
     if args.env_name in result_dict.keys():
         print("already done")
