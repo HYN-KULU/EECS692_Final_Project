@@ -302,7 +302,9 @@ def get_transforms(seg, depth, cmat, flows=[], ransac_tries=100, ransac_threshol
     points1_uv = samples_2d
     points1 = samples_3d
     center = grasp
+    print(f"The length of the flows are {len(flows)}")
     for i in range(len(flows)):
+        print(i)
         flow = flows[i]
         center_uv = to_2d(center, cmat)[0]
         center_2ds.append(center_uv)

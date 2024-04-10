@@ -19,6 +19,7 @@ torch.manual_seed(0)
 
 class ThorEnv():
     def __init__(self, scene, target, seed=np.random.randint(1e6), resolution=(64, 64), max_eplen=50):
+        print(1)
         self.controller = Controller(
             scene=scene, 
             rotateStepDegrees=45, 
@@ -27,8 +28,11 @@ class ThorEnv():
             height=resolution[1],
             renderDepthImage=True,
         )
+        print(2)
         self.max_eplen = max_eplen
+        print(3)
         self.target = target
+        print(4)
         self.seed(seed)
 
     def seed(self, seed):
@@ -138,15 +142,20 @@ scene2targets = {
 }
 
 def eval(scene, target, n_seeds=20, log=True):
-    video_model = get_video_model_thor(ckpts_dir='../ckpts/ithor', milestone=16)
+    video_model = get_video_model_thor(ckpts_dir='../ckpts/ithor', milestone=30)
     flow_model = get_flow_model()
-
+    print("Here")
+    print(log)
     env = ThorEnv(scene, target)
+    print("env")
     if log:
+        print("rendering")
         render_env = ThorEnv(scene, target, resolution=(512, 512))
+    print("After render")
     successes = 0
     framess = []
     for seed in tqdm(range(n_seeds)):
+            print(seed)
         # try:
             env.seed(seed)
             if log:

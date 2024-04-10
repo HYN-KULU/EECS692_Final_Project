@@ -68,6 +68,7 @@ def collect_video(init_obs, env, policy, camera_name='corner3', resolution=(640,
     depths += [depth]
     
     dd = 10 ### collect a few more steps after done
+    success=0
     while dd:
         ### The policy is getting the action based on the obs(ervation).
         action = policy.get_action(obs)
@@ -78,6 +79,8 @@ def collect_video(init_obs, env, policy, camera_name='corner3', resolution=(640,
             ## The key step 2. We should learn how to get the planning video.
             ## The key step 3. We should implement the judgement through Video-LLM here.
             done = info['success']
+            if(done):
+                success=1
             dd -= done
             episode_return += reward
         except Exception as e:
@@ -91,7 +94,7 @@ def collect_video(init_obs, env, policy, camera_name='corner3', resolution=(640,
         
         
         
-    return images, depths, episode_return
+    return images, depths, episode_return,success
 
 def sample_n_frames(frames, n):
     new_vid_ind = [int(i*len(frames)/(n-1)) for i in range(n-1)] + [len(frames)-1]

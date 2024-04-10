@@ -83,7 +83,7 @@ def run(args):
                 # imageio.mimsave(f'{result_root}/plans/{env_name}/{camera}_{seed}.mp4', images.transpose(0, 2, 3, 1))
 
                 # After getting the policy, the agent interact with the environment HERE in the collect_video function.
-                images, _, episode_return = collect_video(obs, env, policy, camera_name=camera, resolution=resolution)
+                images, _, episode_return,success_flag = collect_video(obs, env, policy, camera_name=camera, resolution=resolution)
                 rewards.append(episode_return / len(images))
 
                 used_replans = max_replans - policy.replans
@@ -93,7 +93,8 @@ def run(args):
                 imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
                 
                 print("test eplen: ", len(images))
-                if len(images) <= 500:
+                # if len(images) <= 500:
+                if success_flag:
                     success += 1
                     replans_counter[used_replans] += 1
                     print("success, used replans: ", used_replans)

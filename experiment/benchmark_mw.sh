@@ -7,7 +7,7 @@
 # python org_results_mw.py --results_root "../results/results_AVDC_mw" 
 for task in "door-open-v2-goal-observable" 
 do 
-    CUDA_VISIBLE_DEVICES=$1 python benchmark_mw.py --env_name $task --n_exps 1 --ckpt_dir "../ckpts/metaworld" --milestone 24 --result_root "../results/results_AVDC_mw"
+    CUDA_VISIBLE_DEVICES=$0 python benchmark_mw.py --env_name $task --n_exps 2 --ckpt_dir "../ckpts/metaworld" --milestone 24 --result_root "../results/results_AVDC_mw"
 done
 
-python org_results_mw.py --results_root "../results/results_AVDC_mw"
+# python org_results_mw.py --results_root "../results/results_AVDC_mw"
