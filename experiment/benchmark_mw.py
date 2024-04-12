@@ -90,8 +90,9 @@ def run(args):
                 
                 ### save sample video
                 os.makedirs(f'{result_root}/videos/{env_name}', exist_ok=True)
-                imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
-                
+                # imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
+                dataframe={"pred_videos":policy.pred_images,"actual_videos":images,"actions":policy.actions,"plan_steps":policy.plan_steps,"success_flag":success_flag}
+                torch.save(dataframe,f'{result_root}/videos/{env_name}/{camera}_{seed}.pth')
                 print("test eplen: ", len(images))
                 # if len(images) <= 500:
                 if success_flag:
@@ -128,8 +129,9 @@ if __name__ == "__main__":
     parser.add_argument("--ckpt_dir", type=str, default="../ckpts/metaworld")
     parser.add_argument("--milestone", type=int, default=24)
     parser.add_argument("--result_root", type=str, default="../results/results_AVDC_full")
+    parser.add_argument("--gpu_id", type=str, default='0')
     args = parser.parse_args()
-
+    # os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     try:
         with open(f"{args.result_root}/result_dict.json", "r") as f:
             result_dict = json.load(f)

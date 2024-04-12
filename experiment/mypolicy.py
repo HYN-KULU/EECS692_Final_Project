@@ -371,6 +371,12 @@ class MyPolicy(Policy):
 
 class MyPolicy_CL(Policy):
     def __init__(self, env, task, camera, video_model, flow_model, resolution=(320, 240), plan_timeout=15, max_replans=0, log=False):
+        # For Collecting Trajectory Data
+        self.pred_images=[]
+        self.plan_steps=[]
+        self.actions=[]
+        self.step=0
+        # Initialization in the original codebase.
         self.env = env
         self.seg_ids = name2maskid[task]
         self.task = " ".join(task.split('-')[:-3])
@@ -428,6 +434,7 @@ class MyPolicy_CL(Policy):
         ## Study how can we possibly finetune the video model.
         ## We will generate those image+text pairs and oracle "images" result. (We need to use an oracle controller, and disturb the trajectory.)
         images = pred_video(self.video_model, image, self.task)
+        self.pred_images.append(images)
         time_vid = time.time() - start
         print("Finish Predicting the Video.")
         # measure time for flow
@@ -491,7 +498,8 @@ class MyPolicy_CL(Policy):
 
         action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=20.)
         action['grab_effort'] = self._grab_effort(o_d)
-
+        self.actions.append(action.array)
+        self.step+=1
         return action.array
 
     def _desired_pos(self, o_d):
@@ -501,6 +509,7 @@ class MyPolicy_CL(Policy):
         # if stucked/stopped(all subgoals reached), replan
         if self.replan_countdown <= 0 and self.replans > 0:
             grasp, transforms = self.calculate_next_plan()
+            self.plan_steps.append(self.step)
             self.grasp = grasp[0]
             self.subgoals = self.calc_subgoals(grasp[0], transforms)
             if self.mode == "push": self.init_grasp()
