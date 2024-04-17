@@ -73,10 +73,14 @@ def run(args):
         replans_counter = {i: 0 for i in range(max_replans + 1)}
         for seed in tqdm(range(n_exps)):
             try: 
+                file_path=f'{result_root}/videos/{env_name}/{camera}_{seed}.pth'
+                if os.path.exists(file_path):
+                    continue
                 env = benchmark_env(seed=seed)
                 
                 obs = env.reset()
                 print("Getting Policy")
+                # max_replans=0
                 policy = MyPolicy_CL(env, env_name, camera, video_model, flow_model, max_replans=max_replans)
                 print("Have got the Policy")
                 # os.makedirs(f'{result_root}/plans/{env_name}', exist_ok=True)
@@ -92,7 +96,7 @@ def run(args):
                 os.makedirs(f'{result_root}/videos/{env_name}', exist_ok=True)
                 # imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
                 dataframe={"pred_videos":policy.pred_images,"actual_videos":images,"actions":policy.actions,"plan_steps":policy.plan_steps,"success_flag":success_flag}
-                torch.save(dataframe,f'{result_root}/videos/{env_name}/{camera}_{seed}.pth')
+                # torch.save(dataframe,f'/nfs/turbo/coe-chaijy/heyinong/results/results_AVDC_mw/videos/{env_name}/{camera}_{seed}.pth')
                 print("test eplen: ", len(images))
                 # if len(images) <= 500:
                 if success_flag:
@@ -138,8 +142,8 @@ if __name__ == "__main__":
     except:
         result_dict = {}
     assert args.env_name in name2maskid.keys()
-    if args.env_name in result_dict.keys():
-        print("already done")
-    else:
-        run(args)
+    # if args.env_name in result_dict.keys():
+    #     print("already done")
+    # else:
+    run(args)
         

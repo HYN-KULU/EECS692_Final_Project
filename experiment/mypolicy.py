@@ -434,6 +434,8 @@ class MyPolicy_CL(Policy):
         ## Study how can we possibly finetune the video model.
         ## We will generate those image+text pairs and oracle "images" result. (We need to use an oracle controller, and disturb the trajectory.)
         images = pred_video(self.video_model, image, self.task)
+
+        # images=torch.load("./images.pth")
         self.pred_images.append(images)
         time_vid = time.time() - start
         print("Finish Predicting the Video.")

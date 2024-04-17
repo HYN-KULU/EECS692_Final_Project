@@ -41,11 +41,20 @@ if __name__=="__main__":
     obs = env.reset()
     policy=get_policy(env_name)
     env_list=[]
-    for i in range(5):
+    images=np.zeros([8,3,240,320])
+    for i in range(100):
         action=policy.get_action(obs)
+        # action=np.array([-1,1,1,1])
         obs, reward, done, info = env.step(action)
         done = info['success']
+        image, depth = env.render(depth=True, offscreen=True, camera_name='corner', resolution=(320, 240)) # image shape: 240,320,3
+        image=image.transpose(2,0,1)
+        # if(i%5==0):
+        #     images[i//5]=image
         # if done:
             # break
     # print(info['success'])
+    print(image.shape)
+    print(len(images))
+    torch.save(images,"./images.pth")
     print(obs)
