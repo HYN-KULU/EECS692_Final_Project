@@ -23,11 +23,11 @@ class SawyerButtonPressTopdownWallV2Policy(Policy):
             'delta_pos': np.arange(3),
             'grab_effort': 3
         })
-
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        to_xyz,branch_id=self._desired_pos(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=to_xyz, p=25.)
         action['grab_effort'] = -1.
 
-        return action.array
+        return action.array,branch_id
 
     @staticmethod
     def _desired_pos(o_d):
@@ -35,6 +35,6 @@ class SawyerButtonPressTopdownWallV2Policy(Policy):
         pos_button = o_d['button_pos'] + np.array([.0, -.06, .0])
 
         if np.linalg.norm(pos_curr[:2] - pos_button[:2]) > 0.04:
-            return pos_button + np.array([0., 0., 0.1])
+            return pos_button + np.array([0., 0., 0.1]),0
         else:
-            return pos_button
+            return pos_button,1

@@ -25,11 +25,11 @@ class SawyerBasketballV2Policy(Policy):
             'delta_pos': np.arange(3),
             'grab_effort': 3
         })
-
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        to_xyz,branch_id=self._desired_pos(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=to_xyz, p=25.)
         action['grab_effort'] = self._grab_effort(o_d)
 
-        return action.array
+        return action.array,branch_id
 
     @staticmethod
     def _desired_pos(o_d):
@@ -41,13 +41,13 @@ class SawyerBasketballV2Policy(Policy):
         pos_hoop = np.array([o_d['hoop_x'], .875, .35])
 
         if np.linalg.norm(pos_curr[:2] - pos_ball[:2]) > .04:
-            return pos_ball + np.array([.0, .0, .3])
+            return pos_ball + np.array([.0, .0, .3]),1
         elif abs(pos_curr[2] - pos_ball[2]) > .025:
-            return pos_ball
+            return pos_ball,2
         elif abs(pos_ball[2] - pos_hoop[2]) > 0.025:
-            return np.array([pos_curr[0], pos_curr[1], pos_hoop[2]])
+            return np.array([pos_curr[0], pos_curr[1], pos_hoop[2]]),3
         else:
-            return pos_hoop
+            return pos_hoop,4
 
     @staticmethod
     def _grab_effort(o_d):

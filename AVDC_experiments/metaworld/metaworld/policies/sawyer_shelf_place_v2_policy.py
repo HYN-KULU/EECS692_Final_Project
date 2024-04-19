@@ -25,11 +25,11 @@ class SawyerShelfPlaceV2Policy(Policy):
             'delta_pos': np.arange(3),
             'grab_effort': 3
         })
-
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self._desired_pos(o_d), p=25.)
+        to_xyz,branch_id=self._desired_pos(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=to_xyz, p=25.)
         action['grab_effort'] = self._grab_effort(o_d)
 
-        return action.array
+        return action.array,branch_id
 
     @staticmethod
     def _desired_pos(o_d):
@@ -38,21 +38,21 @@ class SawyerShelfPlaceV2Policy(Policy):
         pos_shelf_x = o_d['shelf_x']
         if np.linalg.norm(pos_curr[:2] - pos_block[:2]) > 0.04:
             # positioning over block
-            return pos_block + np.array([0., 0., 0.3])
+            return pos_block + np.array([0., 0., 0.3]),1
         elif abs(pos_curr[2] - pos_block[2]) > 0.04:
             # grabbing block
-            return pos_block
+            return pos_block,2
         elif np.abs(pos_curr[0] - pos_shelf_x) > 0.02:
             # centering with goal pos
-            return np.array([pos_shelf_x, pos_curr[1], 0.3])
+            return np.array([pos_shelf_x, pos_curr[1], 0.3]),3
         elif pos_curr[2] < 0.30:
             # move up to correct height
             pos_new = pos_curr + np.array([0., 0., 0.30])
-            return pos_new
+            return pos_new,4
         else:
             # move forward to goal
             pos_new = pos_curr + np.array([0., 0.05, 0.])
-            return pos_new
+            return pos_new,5
 
     @staticmethod
     def _grab_effort(o_d):

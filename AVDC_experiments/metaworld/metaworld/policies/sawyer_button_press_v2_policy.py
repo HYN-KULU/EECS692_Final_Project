@@ -22,11 +22,11 @@ class SawyerButtonPressV2Policy(Policy):
             'delta_pos': np.arange(3),
             'grab_effort': 3
         })
-
-        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=self.desired_pos(o_d), p=25.)
+        to_xyz,branch_id=self.desired_pos(o_d)
+        action['delta_pos'] = move(o_d['hand_pos'], to_xyz=to_xyz, p=25.)
         action['grab_effort'] = 0.
 
-        return action.array
+        return action.array,branch_id
 
     @staticmethod
     def desired_pos(o_d):
@@ -41,9 +41,10 @@ class SawyerButtonPressV2Policy(Policy):
                                 np.array([button_initial_x, button_initial_z]),
                                 atol=0.02)):
             pos_button[1] = pos_curr[1] - .1
-            return pos_button
+            branch_id=1
+            return pos_button,branch_id
         # if the hand is aligned with the button, push the button in, by
         # increasing the hand's y position
         pos_button[1] += 0.02
-
-        return pos_button
+        branch_id=2
+        return pos_button,branch_id

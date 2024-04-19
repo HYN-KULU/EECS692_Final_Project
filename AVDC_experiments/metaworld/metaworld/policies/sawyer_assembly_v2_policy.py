@@ -35,9 +35,9 @@ class SawyerAssemblyV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_wrench = o_d['wrench_pos'] + np.array([-.02, .0, .0])
         pos_peg = o_d['peg_pos'] + np.array([.12, .0, .14])
-        print("pos_curr",pos_curr,"pos_wrench",pos_wrench,"pos_peg",pos_peg,"gripper",o_d['gripper'])
-        print(np.linalg.norm(pos_curr[:2] - pos_peg[:2]))
-        print(np.linalg.norm(pos_wrench[:2] - pos_peg[:2]))
+        # print("pos_curr",pos_curr,"pos_wrench",pos_wrench,"pos_peg",pos_peg,"gripper",o_d['gripper'])
+        # print(np.linalg.norm(pos_curr[:2] - pos_peg[:2]))
+        # print(np.linalg.norm(pos_wrench[:2] - pos_peg[:2]))
         # If XY error is greater than 0.02, place end effector above the wrench
         if (np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 and not (abs(pos_curr[2] - pos_wrench[2])<0.06)):
             branch_id=1
@@ -72,7 +72,7 @@ class SawyerAssemblyV2Policy(Policy):
         pos_curr = o_d['hand_pos']
         pos_wrench = o_d['wrench_pos'] + np.array([-.02, .0, .0])
         pos_peg = o_d['peg_pos'] + np.array([.12, .0, .14])
-        print("grasp debug: ",np.linalg.norm(pos_curr[:2] - pos_wrench[:2]),abs(pos_curr[2] - pos_wrench[2]) )
+        # print("grasp debug: ",np.linalg.norm(pos_curr[:2] - pos_wrench[:2]),abs(pos_curr[2] - pos_wrench[2]) )
         if (np.linalg.norm(pos_curr[:2] - pos_wrench[:2]) > 0.02 or abs(pos_curr[2] - pos_wrench[2]) > 0.12) and not (abs(pos_curr[2] - pos_wrench[2])<0.06):
             if(o_d['gripper']<0.9):
                 return -0.2
