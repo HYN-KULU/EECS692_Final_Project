@@ -71,7 +71,8 @@ def run(args):
         success = 0
         rewards = []
         replans_counter = {i: 0 for i in range(max_replans + 1)}
-        for seed in tqdm(range(n_exps)):
+        # for seed in tqdm(range(n_exps)):
+        for seed in tqdm(range(22,30)):
             try: 
                 file_path=f'{result_root}/videos/{env_name}/{camera}_{seed}.pth'
                 if os.path.exists(file_path):
@@ -95,9 +96,9 @@ def run(args):
                 ### save sample video
                 os.makedirs(f'{result_root}/videos/{env_name}', exist_ok=True)
                 # imageio.mimsave(f'{result_root}/videos/{env_name}/{camera}_{seed}.mp4', images)
-                dataframe={"pred_videos":policy.pred_images,"actual_videos":images,"actions":policy.actions,"plan_steps":policy.plan_steps,"success_flag":success_flag}
-                # torch.save(dataframe,f'/nfs/turbo/coe-chaijy/heyinong/results/results_AVDC_mw/videos/{env_name}/{camera}_{seed}.pth')
-                print("test eplen: ", len(images))
+                dataframe={"pred_videos":policy.pred_images,"actions":policy.actions,"plan_steps":policy.plan_steps,"success_flag":success_flag}
+                torch.save(dataframe,f'/nfs/turbo/coe-chaijy/heyinong/results/results_AVDC_mw/videos/{env_name}/{camera}_{seed}.pth')
+                # print("test eplen: ", len(images))
                 # if len(images) <= 500:
                 if success_flag:
                     success += 1

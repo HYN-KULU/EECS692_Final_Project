@@ -48,65 +48,37 @@ def images_to_video(image_path_list, output_path, fps=2):
                 continue  # Skip unknown types
             writer.append_data(image)
 
-if __name__=="__main__":
-    env_name="hammer-v2-goal-observable"
+def get_images_data(env_name,AVDC_step,seed):
+    actions=data['actions']
+    images,gap_images=[],[]
     benchmark_env = env_dict[env_name]
     task_name=get_task_text(env_name)
-    seed=15
     env = benchmark_env(seed)
     obs = env.reset()
-    policy=get_policy(env_name)
-    env_list=[]
-    images=[]
-    fails=[]
-    branch_cache=0
-    branch_id=0
-    gap=0
-    base_path = f"/nfs/turbo/coe-chaijy/heyinong/results/results_AVDC_mw/videos/{env_name}"
-    file_path = os.path.join(base_path, f"corner_{seed}.pth")
-    data=torch.load(file_path)
-    actions=data['actions']
-    print(data['plan_steps'])
-    print(len(actions))
-    pred_videos=data['pred_videos'][0]
-    pred_images=[]
-    for i in range(8):
-        print(pred_videos[i].shape)
-        pred_images.append(pred_videos[i].transpose(1,2,0))
-    images_to_video(pred_images,'./fail_plan.mp4',fps=2)
-    # exit()
-    failure_step=65
-    gap_images=[]
-    dd=0
+    branch_cache,branch_id,gap,dd=0,0,0,0
     for i in range(500):
-        print(i)
-        if (i<=failure_step):
+        if (i<=AVDC_step):
             action=actions[i]
         else: 
             action,branch_id=policy.get_action(obs)
         obs, reward, done, info = env.step(action)
         done = info['success']
         image, depth = env.render(depth=True, offscreen=True, camera_name='corner', resolution=(320, 240)) # image shape: 240,320,3
-        print(i,action, branch_id)
-        ## This is for illustration. The AVDC model runs trajectory until failure_step. Then I use expert policy to run. Every time the model changes a branch, I set it as a subgoal.
-        if(i==failure_step or (i>failure_step and branch_id !=branch_cache)):
-        # if(i>=failure_step):
+        ## This is for illustration. The AVDC model runs trajectory until AVDC_step. Then I use expert policy to run. Every time the model changes a branch, I set it as a subgoal.
+        if(i==AVDC_step or (i>AVDC_step and branch_id !=branch_cache)):
             # gap images definition can be seen in the next branch. I only want to add gap images when the model can indeed gets to the next subgoal, otherwise I don't think those data useful.
             images+=gap_images
             gap_images=[]
             images.append(image)
             gap=0
-        # # If a subgoal takes to long to finish, I save it every 15 steps.
-        elif (i>failure_step and gap>15):
+        # If a subgoal takes to long to finish, I save it every 15 steps.
+        elif (i>AVDC_step and gap>15):
             gap_images.append(image)
             gap=0
-        # # This is given to you so that you know how the previous failure steps behave.
-        elif(i<failure_step):
-            fails.append(image)
         # branch_cache is used to check whether the branch_id changes from steps to steps.
         branch_cache=branch_id
         # Increment the gap steps
-        if(i>failure_step):
+        if(i>AVDC_step):
             gap+=1
         # If done, don't immediately stop, just to see some videos after the goal is finished, it will also be helpful if you see the assembly env.
         if (done):
@@ -119,6 +91,36 @@ if __name__=="__main__":
                 images+=gap_images
                 gap_images=[]
                 break
-        print(done)
-    images_to_video(images,'./test.mp4',fps=2)
-    images_to_video(fails,'./fail.mp4',fps=10)
+    return images
+    
+
+if __name__=="__main__":
+    env_name="hammer-v2-goal-observable"
+    seed=0
+    for seed in range(20,30):
+        policy=get_policy(env_name)
+        data_trajectory_dir="/nfs/turbo/coe-chaijy/heyinong/image_editing_data/"
+        if not os.path.exists(data_trajectory_dir):
+            os.makedirs(data_trajectory_dir)
+        base_path = f"/nfs/turbo/coe-chaijy/heyinong/results/results_AVDC_mw/videos/{env_name}"
+        file_path = os.path.join(base_path, f"corner_{seed}.pth")
+        if not os.path.exists(file_path):
+            print("here")
+            continue
+        data=torch.load(file_path)
+        image_editing_dir=f"/nfs/turbo/coe-chaijy/heyinong/image_editing_data/{env_name}"
+        if not os.path.exists(image_editing_dir):
+            os.makedirs(image_editing_dir)
+        if os.path.exists(f'{image_editing_dir}/data_{seed}.pth'):
+            print("there")
+            continue
+        image_editing_data_pairs=[]
+        for i in range(len(data['actions'])//20):
+            print(f"Collecting data for task {env_name} from seed {seed} step {20*i}")
+            images=get_images_data(env_name,5*i,seed)
+            image_editing_data_pairs+=[(images[j],images[j+1]) for j in range(len(images)-1)]
+        for j in range(len(data['plan_steps'])):
+            print(f"Collecting data for task {env_name} from seed {seed} step {data['plan_steps'][j]}")
+            images=get_images_data(env_name,data['plan_steps'][j],seed)
+            image_editing_data_pairs+=[(images[k],images[k+1]) for k in range(len(images)-1)]
+        torch.save(image_editing_data_pairs,f'{image_editing_dir}/data_{seed}.pth')
